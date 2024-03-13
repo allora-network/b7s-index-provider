@@ -1,19 +1,28 @@
 version: "3.8"
 services:
   worker:
-    # 12D3KooWM5RbfAgPAiMcXFFkWEyWBcfRigMzuxNewynSJ8YG6PsZ
     container_name: worker
     build: .
-    command: >
-      ./upshot-node --role=worker --peer-db=/data/peerdb --function-db=/data/function-db 
-      --runtime-path=/app/runtime --runtime-cli=bls-runtime --workspace=/data/workspace
-       --private-key=/data/keys/worker/priv.bin --log-level=debug --port=9011 
-       --boot-nodes=/ip4/172.19.0.100/tcp/9010/p2p/12D3KooWPaHbkXmKQLrQ8xfQj39pvbfhrQSWMqJSCAE9WYaqcE7R
+    entrypoint:
+      - "/bin/bash"
+      - "-c"
+      - |
+        if [ ! -f /data/keys/priv.bin ]; then
+          echo "Generating new private keys..."
+          mkdir -p /data/keys
+          cd /data/keys
+          allora-keys
+        fi
+        # Change boot-nodes below to the key advertised by your head
+        allora-node --role=worker --peer-db=/data/peerdb --function-db=/data/function-db \
+          --runtime-path=/app/runtime --runtime-cli=bls-runtime --workspace=/data/workspace \
+          --private-key=/data/keys/priv.bin --log-level=debug --port=9011 \
+          --boot-nodes=/ip4/172.19.0.100/tcp/9010/p2p/head-id \
+          --topic=2
     volumes:
       - type: bind
-        source: ./keys/worker1/
-        target: /data/keys/worker
-        read_only: true
+        source: ./worker-data
+        target: /data
     env_file:
       - .env
     depends_on:
@@ -25,20 +34,27 @@ services:
         ipv4_address: 172.19.0.5
 
   head:
-    # 12D3KooWPaHbkXmKQLrQ8xfQj39pvbfhrQSWMqJSCAE9WYaqcE7R
     container_name: head
-    image: 696230526504.dkr.ecr.us-east-1.amazonaws.com/allora-inference-base-head:dev-latest
-    command: >
-      ./upshot-node --role=head --peer-db=/data/peerdb --function-db=/data/function-db
-      --runtime-path=/app/runtime --runtime-cli=bls-runtime --workspace=/data/workspace
-      --private-key=/data/keys/head/priv.bin --log-level=debug --port=9010 --rest-api=:6000
+    image: alloranetwork/allora-inference-base-head:v0.0.5
+    environment:
+      - HOME=/data
+    entrypoint:
+      - "/bin/bash"
+      - "-c"
+      - |
+        if [ ! -f /data/keys/priv.bin ]; then
+          echo "Generating new private keys..."
+          mkdir -p /data/keys
+          cd /data/keys
+          allora-keys
+        fi
+        allora-node --role=head --peer-db=/data/peerdb --function-db=/data/function-db  \
+          --runtime-path=/app/runtime --runtime-cli=bls-runtime --workspace=/data/workspace \
+          --private-key=/data/keys/priv.bin --log-level=debug --port=9010 --rest-api=:6000
     ports:
       - "6000:6000"
     volumes:
-      - type: bind
-        source: ./keys/head1/
-        target: /data/keys/head
-        read_only: true
+      - ./head-data:/data
 
     networks:
       b7s-local:
@@ -53,3 +69,6 @@ networks:
       config:
         - subnet: 172.19.0.0/24
 
+volumes:
+  worker-data:
+  head-data:

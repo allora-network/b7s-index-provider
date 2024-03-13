@@ -22,21 +22,25 @@ There is a docker-compose.yml provided that sets up one head node and one worker
 
 ## Dependencies
 - Have an available image of the `allora-inference-base` , and reference it as a base on the `FROM` of the `Dockerfile`.
-- Create a set of keys in the `keys` directory for your head and worker, and use them in the head and worker configuration(volume mapping already provided in `docker-compose.yml` file). If no keys are specified in the volumes, new keys are created. However, the worker will need to specify the `peer_id` of the head for defining it as a `BOOT_NODES`. You can bring head up first, get the key from the container, then use it in the `BOOT_NODES`. More info in the [b7s-docker-compose](https://github.com/blocklessnetwork/b7s-docker-compose/tree/main) repo.
-- Provide a valid `UPSHOT_API_TOKEN` env var.
+- Create a set of keys in the `keys` directory for your head and worker, and use them in the head and worker configuration(volume mapping already provided in `docker-compose.yml` file). If no keys are specified in the volumes, new keys are created. However, the worker will need to specify the `peer_id` of the head for defining it as a `BOOT_NODES`. You can bring head up first, get the key from the container, then use it in the `BOOT_NODES`. For more information, see [how to generate keys](https://github.com/allora-network/basic-coin-prediction-node#docker-compose-setup).
+- Provide a valid `UPSHOT_API_TOKEN` env var inside the `node/.env` file. You can [create one here](https://developer.upshot.xyz/).
 
 ## Run 
 
-Once this is set up, run `docker compose up head1 worker1`
+Once this is set up, run `docker compose up`
 
 
 Once both nodes are up, a function can be tested by hitting:
 
 ```
-curl --location 'http://localhost:6000/api/v1/functions/execute' --header 'Accept: application/json, text/plain, */*' --header 'Content-Type: application/json;charset=UTF-8' --data '{
+curl --location 'http://localhost:6000/api/v1/functions/execute' \
+--header 'Accept: application/json, text/plain, */*' \
+--header 'Content-Type: application/json;charset=UTF-8' \
+--data \
+'{
     "function_id": "bafybeigpiwl3o73zvvl6dxdqu7zqcub5mhg65jiky2xqb4rdhfmikswzqm",
     "method": "allora-inference-function.wasm",
-    "topic": "<TOPIC_ID>",
+    "topic": "2",
     "config": {
         "env_vars": [
             {
@@ -52,6 +56,31 @@ curl --location 'http://localhost:6000/api/v1/functions/execute' --header 'Accep
     }
 }'
 
+```
+And the response:
+```
+{
+  "code": "200",
+  "request_id": "f5b8944d-2177-4005-8476-7319cd4045f0",
+  "results": [
+    {
+      "result": {
+        "stdout": "{\"value\": \"46071353120000000000\"}\n\n",
+        "stderr": "",
+        "exit_code": 0
+      },
+      "peers": [
+        "12D3KooWN6vwWEbMASaVYxJ257XLF3aLjktfwvxuaRFT99w2omhq"
+      ],
+      "frequency": 100
+    }
+  ],
+  "cluster": {
+    "peers": [
+      "12D3KooWN6vwWEbMASaVYxJ257XLF3aLjktfwvxuaRFT99w2omhq"
+    ]
+  }
+}
 ```
 
 ## Connecting to the Allora network

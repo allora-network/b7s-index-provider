@@ -47,14 +47,17 @@ def process(index_name):
         response = json.dumps({"value": str(wei_value)}) 
     else:
         response = json.dumps({"error": "No predictions"})
-    print(response)
+    return response
 
 
 if __name__ == "__main__":
     # Your code logic with the parsed argument goes here
+    # Parameters: topic_id, index_name
     try:
-        index_name = sys.argv[1]
-        process(index_name)
+        # Not using to discriminate by topicId for simplicity.
+        # topic_id = sys.argv[1]
+        index_name = sys.argv[2]
+        response = process(index_name)
     except Exception as e:
         response = json.dumps({"error": {str(e)}})
-        print(response)
+    print(response)

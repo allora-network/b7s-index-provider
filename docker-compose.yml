@@ -1,7 +1,6 @@
 version: "3.8"
 services:
   worker:
-    # 12D3KooWM5RbfAgPAiMcXFFkWEyWBcfRigMzuxNewynSJ8YG6PsZ
     container_name: worker
     build: .
     entrypoint:
@@ -18,7 +17,7 @@ services:
         allora-node --role=worker --peer-db=/data/peerdb --function-db=/data/function-db \
           --runtime-path=/app/runtime --runtime-cli=bls-runtime --workspace=/data/workspace \
           --private-key=/data/keys/priv.bin --log-level=debug --port=9011 \
-          --boot-nodes=/ip4/172.19.0.100/tcp/9010/p2p/12D3KooWEUkndnKPD3AVxxVrks6ibTUTbxHe1uMYsCSNTzGJv6N9 \
+          --boot-nodes=/ip4/172.19.0.100/tcp/9010/p2p/head-id \
           --topic=2
     volumes:
       - type: bind
@@ -35,7 +34,6 @@ services:
         ipv4_address: 172.19.0.5
 
   head:
-    # 12D3KooWEUkndnKPD3AVxxVrks6ibTUTbxHe1uMYsCSNTzGJv6N9
     container_name: head
     image: alloranetwork/allora-inference-base-head:v0.0.5
     environment:
